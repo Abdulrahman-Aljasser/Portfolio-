@@ -1,3 +1,6 @@
+
+
+Portfolio abdulrahman · HTML
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -8,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-
+ 
   /* ==========================================================================
      ستايل: الألوان الأساسية (غيّر أي لون من هنا وينعكس على كل الصفحة)
      ========================================================================== */
@@ -37,7 +40,7 @@
   .mono{font-family:'IBM Plex Mono', monospace; direction:ltr; display:inline-block;}
   a{color:inherit; text-decoration:none;}
   ::selection{background:var(--amber); color:#0B0D10;}
-
+ 
   /* خلفية الشبكة المتحركة (parallax) */
   .grid-bg{
     position:fixed; inset:0; z-index:0; pointer-events:none;
@@ -48,14 +51,14 @@
     opacity:0.25;
     mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%);
   }
-
+ 
   /* شريط تقدم السكرول أعلى الصفحة */
   .progress-bar{
     position:fixed; top:0; left:0; height:3px; width:0%; z-index:200;
     background:linear-gradient(90deg, var(--teal), var(--amber));
     transition:width .08s linear;
   }
-
+ 
   /* ==========================================================================
      ستايل: شريط التنقل العلوي (Navbar)
      ========================================================================== */
@@ -84,9 +87,9 @@
     letter-spacing:0.5px;
   }
   .lang-toggle:hover{border-color:var(--teal); color:var(--teal);}
-
+ 
   section{position:relative; z-index:1; padding:120px 6vw; max-width:1200px; margin:0 auto;}
-
+ 
   /* ==========================================================================
      ستايل: قسم الهيرو (العنوان الرئيسي)
      ========================================================================== */
@@ -117,7 +120,7 @@
   .btn-primary:hover{background:#f0b358; transform:translateY(-2px);}
   .btn-ghost{border:1px solid var(--border); color:var(--text);}
   .btn-ghost:hover{border-color:var(--muted);}
-
+ 
   /* لوحة الشارت المتحرك في الهيرو */
   .panel{
     background:var(--surface); border:1px solid var(--border); border-radius:14px;
@@ -131,7 +134,8 @@
   .chart-line path.line{
     fill:none; stroke:var(--amber); stroke-width:2.5;
     stroke-dasharray:600; stroke-dashoffset:600;
-    animation:draw 2.2s ease forwards .3s;
+    /* يرسم الخط للأمام ثم يمسحه للخلف بشكل متكرر — دورة كاملة كل 3 ثواني */
+    animation:draw 1.5s ease-in-out .3s infinite alternate;
   }
   .chart-line path.area{fill:url(#areaFill); opacity:0; animation:fadeArea 1.5s ease forwards 1.6s;}
   @keyframes draw{to{stroke-dashoffset:0;}}
@@ -143,7 +147,7 @@
   }
   .stat-chip .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:17px; color:var(--teal); font-weight:500;}
   .stat-chip .lbl{font-size:11px; color:var(--muted); margin-top:2px;}
-
+ 
   /* ظهور تدريجي عند السكرول + تتابع زمني بسيط (stagger) */
   .reveal{
     opacity:0; transform:translateY(28px);
@@ -151,13 +155,13 @@
     transition-delay:calc(var(--d, 0) * 90ms);
   }
   .reveal.visible{opacity:1; transform:translateY(0);}
-
+ 
   /* عنوان أي قسم (تاق + عنوان) */
   .sec-head{margin-bottom:52px;}
   .sec-tag{font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right; color:var(--amber); font-size:12px; letter-spacing:1px; display:block; margin-bottom:10px;}
   html[dir="ltr"] .sec-tag{text-align:left;}
   .sec-head h2{font-size:clamp(26px,3.5vw,36px); font-weight:600;}
-
+ 
   /* ==========================================================================
      ستايل: قسم نبذة عني (About)
      ========================================================================== */
@@ -168,7 +172,7 @@
   .metric:first-child{padding-top:0;}
   .metric .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:28px; color:var(--amber); font-weight:500;}
   .metric .lbl{font-size:14px; color:var(--muted);}
-
+ 
   /* ==========================================================================
      ستايل: قسم الخدمات (Services)
      ========================================================================== */
@@ -185,7 +189,7 @@
   }
   .service-card h3{font-size:16px; font-weight:600; margin-bottom:8px;}
   .service-card p{color:var(--muted); font-size:13.5px; line-height:1.7;}
-
+ 
   /* ==========================================================================
      ستايل: قسم المهارات والأدوات (Skills)
      ========================================================================== */
@@ -198,7 +202,7 @@
     padding:8px 16px; border-radius:20px; font-size:13px; font-family:'IBM Plex Mono', monospace; direction:ltr;
     color:var(--text);
   }
-
+ 
   /* ==========================================================================
      ستايل: قسم المشاريع (Projects) + كاروسيل صور كل مشروع
      ========================================================================== */
@@ -209,7 +213,7 @@
     transform-style:preserve-3d;
   }
   .proj-card:hover{border-color:var(--teal);}
-
+ 
   /* كاروسيل الصور: خلفية سوداء ثابتة + سهم يمين/يسار + نقاط أسفل */
   .proj-carousel{
     position:relative; height:190px; background:#000; overflow:hidden;
@@ -235,7 +239,7 @@
   .car-dots{position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:5;}
   .car-dots span{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.35); cursor:pointer;}
   .car-dots span.active{background:var(--amber);}
-
+ 
   .proj-body{padding:22px;}
   .proj-body h3{font-size:18px; font-weight:600; margin-bottom:10px;}
   .proj-body .row{display:flex; gap:8px; margin-bottom:6px; font-size:13.5px;}
@@ -246,7 +250,7 @@
     font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:11px;
     color:var(--muted); border:1px solid var(--border); padding:3px 9px; border-radius:4px;
   }
-
+ 
   /* ==========================================================================
      ستايل: قسم الخبرات (Timeline)
      ========================================================================== */
@@ -265,7 +269,7 @@
   html[dir="ltr"] .t-item .period{text-align:left;}
   .t-item h4{font-size:17px; font-weight:600; margin-bottom:6px;}
   .t-item p{color:var(--muted); font-size:14.5px;}
-
+ 
   /* ==========================================================================
      ستايل: قسم التواصل (Contact) + الفوتر
      ========================================================================== */
@@ -279,7 +283,7 @@
   }
   .contact-links a:hover{border-color:var(--amber); color:var(--amber);}
   footer{text-align:center; padding:32px 6vw; color:var(--muted); font-size:12.5px; font-family:'IBM Plex Mono', monospace; direction:ltr; border-top:1px solid var(--border);}
-
+ 
   @media(max-width:860px){
     .hero-grid, .about-grid, .proj-grid{grid-template-columns:1fr;}
     .services-grid{grid-template-columns:1fr 1fr;}
@@ -295,10 +299,10 @@
 </style>
 </head>
 <body>
-
+ 
 <div class="progress-bar" id="progressBar"></div>
 <div class="grid-bg" id="gridBg"></div>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: شريط التنقل العلوي (Navbar)                              -->
 <!-- ============================================================ -->
@@ -316,7 +320,7 @@
     <a href="#contact" class="cta" data-ar="تواصل معي" data-en="Get in touch">تواصل معي</a>
   </div>
 </nav>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: الهيرو - العنوان الرئيسي وأول شي يشوفه الزائر             -->
 <!-- ============================================================ -->
@@ -331,7 +335,7 @@
         <a href="#contact" class="btn btn-ghost" data-ar="تواصل معي" data-en="Get in touch">تواصل معي</a>
       </div>
     </div>
-
+ 
     <div class="panel">
       <div class="panel-head">
         <div class="dots"><span></span><span></span><span></span></div>
@@ -364,7 +368,7 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: نبذة عني (About)                                         -->
 <!-- ============================================================ -->
@@ -386,7 +390,7 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: خدماتي (Services)                                        -->
 <!-- عشان تضيف/تحذف/تعدل خدمة: انسخ أو عدّل بلوك ".service-card"    -->
@@ -398,46 +402,46 @@
     <h2 data-ar="خدماتي" data-en="Services">خدماتي</h2>
   </div>
   <div class="services-grid">
-
+ 
     <div class="service-card reveal" style="--d:0">
       <div class="icon">▤</div>
       <h3 data-ar="داشبوردات بيانات وتقارير منظمة" data-en="Data Dashboards & Organized Reports">داشبوردات بيانات وتقارير منظمة</h3>
       <p data-ar="تحويل الأرقام المتناثرة إلى داشبورد واحد يوضح الصورة كاملة بلمحة، بدل عشرات الملفات المبعثرة." data-en="Turning scattered numbers into a single dashboard that shows the full picture at a glance, instead of dozens of separate files.">تحويل الأرقام المتناثرة إلى داشبورد واحد يوضح الصورة كاملة بلمحة، بدل عشرات الملفات المبعثرة.</p>
     </div>
-
+ 
     <div class="service-card reveal" style="--d:1">
       <div class="icon">🗂</div>
       <h3 data-ar="ترتيب وتحليل وأرشفة البيانات" data-en="Data Organization, Analysis & Archiving">ترتيب وتحليل وأرشفة البيانات</h3>
       <p data-ar="تنظيف البيانات الخام وتصنيفها وأرشفتها بطريقة منظمة يسهل الرجوع لها والبناء عليها لاحقاً." data-en="Cleaning, categorizing, and archiving raw data in a structured way that's easy to reference and build on later.">تنظيف البيانات الخام وتصنيفها وأرشفتها بطريقة منظمة يسهل الرجوع لها والبناء عليها لاحقاً.</p>
     </div>
-
+ 
     <div class="service-card reveal" style="--d:2">
       <div class="icon">⚙</div>
       <h3 data-ar="أتمتة العمليات" data-en="Process Automation">أتمتة العمليات</h3>
       <p data-ar="ربط الأنظمة ببعض عن طريق أدوات وسكربتات عشان المهام المتكررة تصير تلقائية بدون تدخل يدوي." data-en="Connecting systems together through tools and scripts so repetitive tasks run automatically without manual work.">ربط الأنظمة ببعض عن طريق أدوات وسكربتات عشان المهام المتكررة تصير تلقائية بدون تدخل يدوي.</p>
     </div>
-
+ 
     <div class="service-card reveal" style="--d:3">
       <div class="icon">☕</div>
       <h3 data-ar="منيوهات للمقاهي والكافيهات" data-en="Menu Design for Cafés & Coffee Shops">منيوهات للمقاهي والكافيهات</h3>
       <p data-ar="تصميم قوائم طعام ومشروبات أنيقة وواضحة تعكس هوية المكان وتسهل القراءة على العميل." data-en="Designing elegant, clear food and drink menus that reflect the venue's identity and are easy for customers to read.">تصميم قوائم طعام ومشروبات أنيقة وواضحة تعكس هوية المكان وتسهل القراءة على العميل.</p>
     </div>
-
+ 
     <div class="service-card reveal" style="--d:4">
       <div class="icon">◧</div>
       <h3 data-ar="بروتفوليو للأفراد والشركات" data-en="Portfolios for Individuals & Businesses">بروتفوليو للأفراد والشركات</h3>
       <p data-ar="موقع تعريفي احترافي على صفحة واحدة يعرض أعمالك أو خدمات شركتك بأفضل شكل ممكن." data-en="A professional one-page site that presents your work or your company's services in the best possible way.">موقع تعريفي احترافي على صفحة واحدة يعرض أعمالك أو خدمات شركتك بأفضل شكل ممكن.</p>
     </div>
-
+ 
     <div class="service-card reveal" style="--d:5">
       <div class="icon">▦</div>
       <h3 data-ar="عروض تقديمية احترافية (PowerPoint)" data-en="Professional PowerPoint Presentations">عروض تقديمية احترافية (PowerPoint)</h3>
       <p data-ar="عروض بصرية منظمة ومتوافقة مع الهوية البصرية للجهة، جاهزة للاجتماعات والعروض الرسمية." data-en="Well-structured visual presentations aligned with your brand identity, ready for meetings and official presentations.">عروض بصرية منظمة ومتوافقة مع الهوية البصرية للجهة، جاهزة للاجتماعات والعروض الرسمية.</p>
     </div>
-
+ 
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: المهارات والأدوات (Skills)                               -->
 <!-- ============================================================ -->
@@ -465,7 +469,7 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: المشاريع (Projects)                                      -->
 <!-- كل مشروع = صور (كاروسيل بسهم يمين/يسار) + عنوان + تفاصيل + البرامج المستخدمة -->
@@ -484,7 +488,7 @@
     <h2 data-ar="أبرز الأعمال" data-en="Selected work">أبرز الأعمال</h2>
   </div>
   <div class="proj-grid">
-
+ 
     <!-- ----- مشروع رقم 1: داشبورد المبيعات الموحّد ----- -->
     <div class="proj-card reveal" style="--d:0">
       <!-- صور المشروع (كاروسيل) — الصور تُضاف من السكربت أسفل الصفحة تحت المفتاح p1 -->
@@ -505,7 +509,7 @@
         <div class="proj-tags"><span>Power BI</span><span>SQL</span><span>DAX</span></div>
       </div>
     </div>
-
+ 
     <!-- ----- مشروع رقم 2: ربط نظام CRM بمخزون المستودع ----- -->
     <div class="proj-card reveal" style="--d:1">
       <div class="proj-carousel" data-project="p2">
@@ -522,7 +526,7 @@
         <div class="proj-tags"><span>Python</span><span>REST API</span><span>Postgres</span></div>
       </div>
     </div>
-
+ 
     <!-- ----- مشروع رقم 3: تقرير مالي شهري تفاعلي ----- -->
     <div class="proj-card reveal" style="--d:2">
       <div class="proj-carousel" data-project="p3">
@@ -539,7 +543,7 @@
         <div class="proj-tags"><span>Tableau</span><span>SQL</span></div>
       </div>
     </div>
-
+ 
     <!-- ----- مشروع رقم 4: أتمتة تقارير الموارد البشرية ----- -->
     <div class="proj-card reveal" style="--d:3">
       <div class="proj-carousel" data-project="p4">
@@ -556,10 +560,10 @@
         <div class="proj-tags"><span>Python</span><span>Google Sheets API</span></div>
       </div>
     </div>
-
+ 
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: الخبرات (Timeline)                                       -->
 <!-- ============================================================ -->
@@ -586,7 +590,7 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: التواصل (Contact)                                        -->
 <!-- ============================================================ -->
@@ -603,14 +607,14 @@
     </div>
   </div>
 </section>
-
+ 
 <!-- ============================================================ -->
 <!-- قسم: الفوتر                                                   -->
 <!-- ============================================================ -->
 <footer>designed & built by Abdulrahman.K — 2026</footer>
-
+ 
 <script>
-
+ 
   /* ============================================================
      قسم: صور المشاريع — هذا المكان الوحيد اللي تحتاج تعدله
      عشان تضيف صور مشاريعك
@@ -629,24 +633,27 @@
   };
   // إذا ضفت مشروع خامس أو أكثر، أضف مفتاحه هنا كمان (مثال: p5: [...])
   const carouselKeys = ['p1', 'p2', 'p3', 'p4'];
-
-
+ 
+ 
   /* ============================================================
      سكربت: إعدادات عامة
      ============================================================ */
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-
+ 
+ 
   /* ============================================================
      سكربت: الظهور التدريجي عند السكرول (Scroll Reveal)
      ============================================================ */
   const revealEls = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+    entries.forEach(e => {
+      // ما نسوي unobserve هنا عشان الحركة تتكرر كل مرة العنصر يدخل الشاشة
+      e.target.classList.toggle('visible', e.isIntersecting);
+    });
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
-
-
+ 
+ 
   /* ============================================================
      سكربت: شريط تقدم السكرول أعلى الصفحة
      ============================================================ */
@@ -659,8 +666,8 @@
   }
   window.addEventListener('scroll', updateProgress, { passive:true });
   updateProgress();
-
-
+ 
+ 
   /* ============================================================
      سكربت: باراللاكس خفيف على خلفية الشبكة
      ============================================================ */
@@ -677,8 +684,8 @@
       }
     }, { passive:true });
   }
-
-
+ 
+ 
   /* ============================================================
      سكربت: حركة العد التصاعدي للأرقام (Count-up)
      ============================================================ */
@@ -711,8 +718,8 @@
     }, { threshold: 0.4 });
     countEls.forEach(el => countIo.observe(el));
   }
-
-
+ 
+ 
   /* ============================================================
      سكربت: تأثير الميلان (Tilt) على كروت المشاريع عند تحريك الماوس
      ============================================================ */
@@ -730,8 +737,8 @@
       card.addEventListener('mouseleave', () => { card.style.transform = ''; });
     });
   }
-
-
+ 
+ 
   /* ============================================================
      سكربت: كاروسيل صور المشاريع (سهم يمين / يسار + نقاط)
      ------------------------------------------------------------
@@ -746,7 +753,7 @@
     const nextBtn  = wrap.querySelector('.car-arrow.next');
     const images   = projectImages[key] || [];
     let index = 0;
-
+ 
     // حالة: ما فيه صور بعد — نعرض رسالة مكان الصورة
     if(images.length === 0){
       track.innerHTML = `<div class="carousel-slide placeholder">📷<br>أضف صور هذا المشروع من متغيّر projectImages أعلى السكربت</div>`;
@@ -755,7 +762,7 @@
       dotsWrap.style.display = 'none';
       return;
     }
-
+ 
     // بناء السلايدات من روابط الصور
     images.forEach((src) => {
       const slide = document.createElement('div');
@@ -763,7 +770,7 @@
       slide.innerHTML = `<img src="${src}" alt="">`;
       track.appendChild(slide);
     });
-
+ 
     // إذا صورة وحدة بس، ما نحتاج أسهم أو نقاط
     if(images.length === 1){
       prevBtn.style.display = 'none';
@@ -771,7 +778,7 @@
       dotsWrap.style.display = 'none';
       return;
     }
-
+ 
     // بناء النقاط أسفل الكاروسيل
     images.forEach((_, i) => {
       const dot = document.createElement('span');
@@ -779,19 +786,19 @@
       dot.addEventListener('click', () => goTo(i));
       dotsWrap.appendChild(dot);
     });
-
+ 
     function update(){
       track.style.transform = `translateX(${-index * 100}%)`;
       dotsWrap.querySelectorAll('span').forEach((d, i) => d.classList.toggle('active', i === index));
     }
     function goTo(i){ index = (i + images.length) % images.length; update(); }
-
+ 
     prevBtn.addEventListener('click', () => goTo(index - 1));
     nextBtn.addEventListener('click', () => goTo(index + 1));
   }
   carouselKeys.forEach(initCarousel);
-
-
+ 
+ 
   /* ============================================================
      سكربت: زر تبديل اللغة (عربي ⇄ إنجليزي)
      ============================================================ */
@@ -812,8 +819,10 @@
     currentLang = currentLang === 'ar' ? 'en' : 'ar';
     applyLang(currentLang);
   });
-
+ 
 </script>
-
+ 
 </body>
 </html>
+ 
+
