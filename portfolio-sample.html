@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خالد المطيري — محلل بيانات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0D10;
+    --surface:#14171C;
+    --surface2:#1B1F26;
+    --border:#262B33;
+    --amber:#E8A33D;
+    --amber-dim:#4a3a1f;
+    --teal:#3FA796;
+    --teal-dim:#1c3733;
+    --text:#F2F0EA;
+    --muted:#8A8F98;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace; direction:ltr; display:inline-block;}
+  a{color:inherit; text-decoration:none;}
+  ::selection{background:var(--amber); color:#0B0D10;}
+
+  /* background grid */
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:0.25;
+    mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%);
+  }
+
+  /* nav */
+  nav{
+    position:fixed; top:0; right:0; left:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 6vw;
+    background:rgba(11,13,16,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .logo{font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:15px; direction:ltr;}
+  nav .logo span{color:var(--amber);}
+  nav ul{list-style:none; display:flex; gap:32px; font-size:14px; color:var(--muted);}
+  nav ul a:hover{color:var(--text);}
+  nav .cta{
+    border:1px solid var(--border); padding:8px 18px; border-radius:6px;
+    font-size:13px; color:var(--text);
+  }
+  nav .cta:hover{border-color:var(--amber); color:var(--amber);}
+
+  section{position:relative; z-index:1; padding:120px 6vw; max-width:1200px; margin:0 auto;}
+
+  /* hero */
+  .hero{
+    min-height:100vh; display:flex; align-items:center;
+    padding-top:100px; padding-bottom:60px;
+  }
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center; width:100%;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right;
+    color:var(--teal); font-size:13px; letter-spacing:1px; margin-bottom:20px;
+    display:flex; align-items:center; gap:8px; justify-content:flex-end;
+  }
+  .eyebrow::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); box-shadow:0 0 12px var(--teal);}
+  h1{
+    font-size:clamp(34px, 5vw, 58px); font-weight:700; line-height:1.25;
+    margin-bottom:24px;
+  }
+  h1 .accent{color:var(--amber);}
+  .hero p.sub{color:var(--muted); font-size:18px; max-width:520px; margin-bottom:36px;}
+  .btn-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    padding:14px 28px; border-radius:6px; font-size:15px; font-weight:500;
+    transition:all .2s ease;
+  }
+  .btn-primary{background:var(--amber); color:#1a1206;}
+  .btn-primary:hover{background:#f0b358; transform:translateY(-2px);}
+  .btn-ghost{border:1px solid var(--border); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--muted);}
+
+  /* hero chart panel */
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .panel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .panel-head .dots{display:flex; gap:6px;}
+  .panel-head .dots span{width:9px; height:9px; border-radius:50%; background:var(--border);}
+  .panel-head .label{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:12px; color:var(--muted);}
+  .chart-line{width:100%; height:140px;}
+  .chart-line path.line{
+    fill:none; stroke:var(--amber); stroke-width:2.5;
+    stroke-dasharray:600; stroke-dashoffset:600;
+    animation:draw 2.2s ease forwards .3s;
+  }
+  .chart-line path.area{fill:url(#areaFill); opacity:0; animation:fadeArea 1.5s ease forwards 1.6s;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  @keyframes fadeArea{to{opacity:1;}}
+  .stat-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:18px;}
+  .stat-chip{
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px;
+  }
+  .stat-chip .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:17px; color:var(--teal); font-weight:500;}
+  .stat-chip .lbl{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  /* reveal */
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.visible{opacity:1; transform:translateY(0);}
+
+  /* section headers */
+  .sec-head{margin-bottom:52px;}
+  .sec-tag{font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right; color:var(--amber); font-size:12px; letter-spacing:1px; display:block; margin-bottom:10px;}
+  .sec-head h2{font-size:clamp(26px,3.5vw,36px); font-weight:600;}
+
+  /* about */
+  .about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:60px; align-items:start;}
+  .about-grid p{color:var(--muted); font-size:16px; margin-bottom:16px;}
+  .metrics{display:flex; flex-direction:column; gap:0;}
+  .metric{display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border);}
+  .metric:first-child{padding-top:0;}
+  .metric .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:28px; color:var(--amber); font-weight:500;}
+  .metric .lbl{font-size:14px; color:var(--muted);}
+
+  /* skills */
+  .skill-cat{margin-bottom:32px;}
+  .skill-cat h3{font-size:14px; color:var(--muted); font-weight:500; margin-bottom:14px; font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    border:1px solid var(--border); background:var(--surface);
+    padding:8px 16px; border-radius:20px; font-size:13px; font-family:'IBM Plex Mono', monospace; direction:ltr;
+    color:var(--text);
+  }
+
+  /* projects */
+  .proj-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .proj-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; transition:border-color .2s ease, transform .2s ease;
+  }
+  .proj-card:hover{border-color:var(--teal); transform:translateY(-4px);}
+  .proj-thumb{
+    height:170px; position:relative;
+    background:
+      repeating-linear-gradient(135deg, var(--surface2) 0 2px, transparent 2px 14px);
+    display:flex; align-items:center; justify-content:center;
+    border-bottom:1px solid var(--border);
+  }
+  .proj-thumb .mini-bars{display:flex; align-items:flex-end; gap:6px; height:60px;}
+  .proj-thumb .mini-bars div{width:10px; background:var(--amber); border-radius:2px 2px 0 0; opacity:.85;}
+  .proj-body{padding:22px;}
+  .proj-body h3{font-size:18px; font-weight:600; margin-bottom:10px;}
+  .proj-body .row{display:flex; gap:8px; margin-bottom:6px; font-size:13.5px;}
+  .proj-body .row .k{color:var(--teal); flex-shrink:0; font-weight:500;}
+  .proj-body .row .v{color:var(--muted);}
+  .proj-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .proj-tags span{
+    font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:11px;
+    color:var(--muted); border:1px solid var(--border); padding:3px 9px; border-radius:4px;
+  }
+
+  /* timeline */
+  .timeline{position:relative; padding-right:32px;}
+  .timeline::before{content:''; position:absolute; right:6px; top:6px; bottom:6px; width:1px; background:var(--border);}
+  .t-item{position:relative; padding-bottom:44px;}
+  .t-item:last-child{padding-bottom:0;}
+  .t-item::before{
+    content:''; position:absolute; right:-32px; top:4px; width:12px; height:12px;
+    border-radius:50%; background:var(--bg); border:2px solid var(--amber);
+  }
+  .t-item .period{font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right; font-size:12px; color:var(--muted); margin-bottom:6px;}
+  .t-item h4{font-size:17px; font-weight:600; margin-bottom:6px;}
+  .t-item p{color:var(--muted); font-size:14.5px;}
+
+  /* contact */
+  .contact{text-align:center;}
+  .contact h2{font-size:clamp(28px,4vw,44px); margin-bottom:20px;}
+  .contact p{color:var(--muted); font-size:17px; margin-bottom:36px;}
+  .contact-links{display:flex; gap:16px; justify-content:center; flex-wrap:wrap;}
+  .contact-links a{
+    border:1px solid var(--border); padding:12px 24px; border-radius:8px; font-size:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .contact-links a:hover{border-color:var(--amber); color:var(--amber);}
+  footer{text-align:center; padding:32px 6vw; color:var(--muted); font-size:12.5px; font-family:'IBM Plex Mono', monospace; direction:ltr; border-top:1px solid var(--border);}
+
+  @media(max-width:860px){
+    .hero-grid, .about-grid, .proj-grid{grid-template-columns:1fr;}
+    nav ul{display:none;}
+    section{padding:80px 6vw;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg" id="gridBg"></div>
+
+<nav>
+  <div class="logo">khaled<span>.</span>m</div>
+  <ul>
+    <li><a href="#about">نبذة</a></li>
+    <li><a href="#skills">المهارات</a></li>
+    <li><a href="#projects">الأعمال</a></li>
+    <li><a href="#experience">الخبرات</a></li>
+  </ul>
+  <a href="#contact" class="cta">تواصل معي</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">متاح للعمل الحر · Riyadh</div>
+      <h1>أحوّل البيانات المبعثرة<br>إلى <span class="accent">قرارات واضحة</span></h1>
+      <p class="sub">محلل بيانات متخصص في بناء الداشبوردات وربط الأنظمة ببعض — من قاعدة البيانات إلى تقرير يفهمه أي شخص في الشركة.</p>
+      <div class="btn-row">
+        <a href="#projects" class="btn btn-primary">شاهد أعمالي</a>
+        <a href="#contact" class="btn btn-ghost">تواصل معي</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="label">revenue_dashboard.pbix</div>
+      </div>
+      <svg class="chart-line" viewBox="0 0 400 140" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8A33D" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#E8A33D" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path class="area" d="M0,110 L40,95 L80,100 L120,70 L160,80 L200,50 L240,60 L280,35 L320,45 L360,20 L400,28 L400,140 L0,140 Z"/>
+        <path class="line" d="M0,110 L40,95 L80,100 L120,70 L160,80 L200,50 L240,60 L280,35 L320,45 L360,20 L400,28"/>
+      </svg>
+      <div class="stat-row">
+        <div class="stat-chip"><div class="num">+38%</div><div class="lbl">نمو الإيراد</div></div>
+        <div class="stat-chip"><div class="num">6</div><div class="lbl">أنظمة مربوطة</div></div>
+        <div class="stat-chip"><div class="num">2.1s</div><div class="lbl">زمن التحديث</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// about</span>
+    <h2>نبذة عني</h2>
+  </div>
+  <div class="about-grid">
+    <div class="reveal">
+      <p>أشتغل محلل بيانات منذ سنوات، متخصص في تحويل البيانات الخام إلى داشبوردات وتقارير تساعد الفرق تاخذ قرارات أسرع. شغلي يمتد من بناء التقارير في Power BI و Tableau، إلى كتابة استعلامات SQL معقدة، وربط أنظمة مختلفة ببعض عن طريق APIs عشان البيانات تتحدث لحظياً بدون تدخل يدوي.</p>
+      <p>اشتغلت مع فرق مبيعات وعمليات ومالية، وهدفي دايم واحد: خلي أي شخص يفهم القصة اللي تحكيها البيانات من أول نظرة، بدون ما يحتاج يفهم SQL.</p>
+    </div>
+    <div class="metrics reveal">
+      <div class="metric"><span class="lbl">داشبورد تم تسليمه</span><span class="num">40+</span></div>
+      <div class="metric"><span class="lbl">أنظمة تم ربطها</span><span class="num">15+</span></div>
+      <div class="metric"><span class="lbl">سنوات خبرة</span><span class="num">5</span></div>
+      <div class="metric"><span class="lbl">عملاء راضين</span><span class="num">98%</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// stack</span>
+    <h2>المهارات والأدوات</h2>
+  </div>
+  <div class="skill-cat reveal">
+    <h3>bi & visualization</h3>
+    <div class="chip-row">
+      <span class="chip">Power BI</span><span class="chip">Tableau</span><span class="chip">Looker Studio</span><span class="chip">Excel</span>
+    </div>
+  </div>
+  <div class="skill-cat reveal">
+    <h3>data & databases</h3>
+    <div class="chip-row">
+      <span class="chip">SQL</span><span class="chip">PostgreSQL</span><span class="chip">Python</span><span class="chip">Pandas</span>
+    </div>
+  </div>
+  <div class="skill-cat reveal">
+    <h3>integration</h3>
+    <div class="chip-row">
+      <span class="chip">REST APIs</span><span class="chip">Zapier</span><span class="chip">Azure Data Factory</span><span class="chip">Google Sheets API</span>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// work</span>
+    <h2>أبرز الأعمال</h2>
+  </div>
+  <div class="proj-grid">
+
+    <div class="proj-card reveal">
+      <div class="proj-thumb">
+        <div class="mini-bars">
+          <div style="height:30%"></div><div style="height:55%"></div><div style="height:40%"></div>
+          <div style="height:75%"></div><div style="height:60%"></div><div style="height:90%"></div>
+        </div>
+      </div>
+      <div class="proj-body">
+        <h3>داشبورد المبيعات الموحّد</h3>
+        <div class="row"><span class="k">المشكلة</span><span class="v">فريق المبيعات كان ياخذ يوم كامل يجهز تقرير أسبوعي يدوي</span></div>
+        <div class="row"><span class="k">الحل</span><span class="v">داشبورد Power BI مربوط مباشر بقاعدة البيانات</span></div>
+        <div class="row"><span class="k">النتيجة</span><span class="v">التقرير صار يتحدث تلقائي، وفر 80% من الوقت</span></div>
+        <div class="proj-tags"><span>Power BI</span><span>SQL</span><span>DAX</span></div>
+      </div>
+    </div>
+
+    <div class="proj-card reveal">
+      <div class="proj-thumb">
+        <div class="mini-bars">
+          <div style="height:50%"></div><div style="height:35%"></div><div style="height:70%"></div>
+          <div style="height:45%"></div><div style="height:85%"></div><div style="height:65%"></div>
+        </div>
+      </div>
+      <div class="proj-body">
+        <h3>ربط نظام CRM بمخزون المستودع</h3>
+        <div class="row"><span class="k">المشكلة</span><span class="v">بيانات المخزون والمبيعات في نظامين منفصلين تماماً</span></div>
+        <div class="row"><span class="k">الحل</span><span class="v">بناء API متوسط يزامن البيانات كل 15 دقيقة</span></div>
+        <div class="row"><span class="k">النتيجة</span><span class="v">صفر أخطاء طلبات ناتجة عن نقص مخزون</span></div>
+        <div class="proj-tags"><span>Python</span><span>REST API</span><span>Postgres</span></div>
+      </div>
+    </div>
+
+    <div class="proj-card reveal">
+      <div class="proj-thumb">
+        <div class="mini-bars">
+          <div style="height:65%"></div><div style="height:80%"></div><div style="height:30%"></div>
+          <div style="height:50%"></div><div style="height:70%"></div><div style="height:40%"></div>
+        </div>
+      </div>
+      <div class="proj-body">
+        <h3>تقرير مالي شهري تفاعلي</h3>
+        <div class="row"><span class="k">المشكلة</span><span class="v">الإدارة تحتاج أرقام لحظية بدل انتظار نهاية الشهر</span></div>
+        <div class="row"><span class="k">الحل</span><span class="v">داشبورد Tableau مع فلاتر حسب الفرع والمنتج</span></div>
+        <div class="row"><span class="k">النتيجة</span><span class="v">قرارات تسعير أسرع بثلاثة أيام في المتوسط</span></div>
+        <div class="proj-tags"><span>Tableau</span><span>SQL</span></div>
+      </div>
+    </div>
+
+    <div class="proj-card reveal">
+      <div class="proj-thumb">
+        <div class="mini-bars">
+          <div style="height:40%"></div><div style="height:60%"></div><div style="height:90%"></div>
+          <div style="height:55%"></div><div style="height:35%"></div><div style="height:75%"></div>
+        </div>
+      </div>
+      <div class="proj-body">
+        <h3>أتمتة تقارير الموارد البشرية</h3>
+        <div class="row"><span class="k">المشكلة</span><span class="v">تجميع بيانات الحضور يدوياً من 5 فروع مختلفة</span></div>
+        <div class="row"><span class="k">الحل</span><span class="v">سكربت Python يجمع ويولّد التقرير تلقائياً</span></div>
+        <div class="row"><span class="k">النتيجة</span><span class="v">من 3 أيام عمل إلى تقرير جاهز بضغطة زر</span></div>
+        <div class="proj-tags"><span>Python</span><span>Google Sheets API</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="experience">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// timeline</span>
+    <h2>مسيرتي المهنية</h2>
+  </div>
+  <div class="timeline">
+    <div class="t-item reveal">
+      <div class="period">2023 — الآن</div>
+      <h4>محلل بيانات مستقل</h4>
+      <p>أشتغل مع عملاء متنوعين على داشبوردات وأتمتة تقارير عن طريق Freelancer وشبكة علاقاتي.</p>
+    </div>
+    <div class="t-item reveal">
+      <div class="period">2021 — 2023</div>
+      <h4>محلل بيانات أول، شركة تقنية</h4>
+      <p>قدت مشروع توحيد كل تقارير الشركة في منصة Power BI واحدة، وربطتها بخمسة أنظمة مصدر.</p>
+    </div>
+    <div class="t-item reveal">
+      <div class="period">2019 — 2021</div>
+      <h4>محلل بيانات مبتدئ</h4>
+      <p>بدأت مسيرتي في تنظيف وتحليل بيانات المبيعات وبناء أول لوحات تحكم لفريق العمليات.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="reveal">
+    <span class="sec-tag" style="text-align:center; display:block;">// contact</span>
+    <h2>نتعاون على مشروعك الجاي؟</h2>
+    <p>متاح حالياً لمشاريع Freelance ومهام تحليل بيانات وبناء داشبوردات.</p>
+    <div class="contact-links">
+      <a href="mailto:email@example.com" class="mono">email@example.com</a>
+      <a href="#" class="mono">LinkedIn</a>
+      <a href="#" class="mono">Freelancer</a>
+      <a href="#" class="mono">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>designed & built by khaled.m — 2026</footer>
+
+<script>
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+
+  // subtle parallax on background grid
+  const gridBg = document.getElementById('gridBg');
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if(!ticking){
+      requestAnimationFrame(() => {
+        gridBg.style.transform = `translateY(${window.scrollY * 0.15}px)`;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+</script>
+
+</body>
+</html>
