@@ -848,7 +848,7 @@ body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relati
 
     // حالة: ما فيه صور بعد — نعرض رسالة مكان الصورة
     if(images.length === 0){
-      track.innerHTML = `<div class="carousel-slide placeholder">📷<br>فعّل وضع التعديل (✎) واضغط "🖼 الصور" لإضافة صور هذا المشروع</div>`;
+      track.innerHTML = `<div class="carousel-slide placeholder">📷<br></div>`;
       prevBtn.style.display = 'none';
       nextBtn.style.display = 'none';
       dotsWrap.style.display = 'none';
