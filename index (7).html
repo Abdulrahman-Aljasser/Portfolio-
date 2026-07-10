@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abdulrahman.K — محلل بيانات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+
+  /* ==========================================================================
+     ستايل: الألوان الأساسية (غيّر أي لون من هنا وينعكس على كل الصفحة)
+     ========================================================================== */
+  :root{
+    --bg:#0B0D10;
+    --surface:#14171C;
+    --surface2:#1B1F26;
+    --border:#262B33;
+    --amber:#E8A33D;
+    --amber-dim:#4a3a1f;
+    --teal:#3FA796;
+    --teal-dim:#1c3733;
+    --text:#F2F0EA;
+    --muted:#8A8F98;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  html[dir="ltr"] body{font-family:'IBM Plex Sans', sans-serif;}
+  .mono{font-family:'IBM Plex Mono', monospace; direction:ltr; display:inline-block;}
+  a{color:inherit; text-decoration:none;}
+  ::selection{background:var(--amber); color:#0B0D10;}
+
+  /* خلفية الشبكة المتحركة (parallax) */
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:48px 48px;
+    opacity:0.25;
+    mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%);
+  }
+
+  /* شريط تقدم السكرول أعلى الصفحة */
+  .progress-bar{
+    position:fixed; top:0; left:0; height:3px; width:0%; z-index:200;
+    background:linear-gradient(90deg, var(--teal), var(--amber));
+    transition:width .08s linear;
+  }
+
+  /* ==========================================================================
+     ستايل: شريط التنقل العلوي (Navbar)
+     ========================================================================== */
+  nav{
+    position:fixed; top:0; right:0; left:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 6vw;
+    background:rgba(11,13,16,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .logo{font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:15px; direction:ltr;}
+  nav .logo span{color:var(--amber);}
+  nav .nav-right{display:flex; align-items:center; gap:24px;}
+  nav ul{list-style:none; display:flex; gap:32px; font-size:14px; color:var(--muted);}
+  nav ul a:hover{color:var(--text);}
+  nav .cta{
+    border:1px solid var(--border); padding:8px 18px; border-radius:6px;
+    font-size:13px; color:var(--text);
+  }
+  nav .cta:hover{border-color:var(--amber); color:var(--amber);}
+  .lang-toggle{
+    border:1px solid var(--border); background:transparent; color:var(--text);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; padding:8px 14px;
+    border-radius:6px; cursor:pointer; transition:border-color .2s ease, color .2s ease;
+    letter-spacing:0.5px;
+  }
+  .lang-toggle:hover{border-color:var(--teal); color:var(--teal);}
+
+  section{position:relative; z-index:1; padding:120px 6vw; max-width:1200px; margin:0 auto;}
+
+  /* ==========================================================================
+     ستايل: وضع التعديل المباشر (Edit Mode)
+     ========================================================================== */
+  body.edit-mode [contenteditable="true"]{
+    outline:1px dashed var(--teal); outline-offset:3px; border-radius:3px; cursor:text;
+  }
+  body.edit-mode [contenteditable="true"]:focus{
+    outline:1px solid var(--amber); background:rgba(232,163,61,0.08);
+  }
+  .carousel-edit-btn{
+    position:absolute; top:8px; left:8px; z-index:6;
+    background:rgba(0,0,0,0.65); color:#fff; border:1px solid rgba(255,255,255,0.3);
+    border-radius:6px; padding:5px 10px; font-size:11px; font-family:'IBM Plex Mono', monospace;
+    cursor:pointer; display:none;
+  }
+  .carousel-edit-btn:hover{border-color:var(--amber); color:var(--amber);}
+  body.edit-mode .carousel-edit-btn{display:block;}
+  .carousel-link-btn{
+    position:absolute; top:8px; right:8px; z-index:6;
+    background:rgba(0,0,0,0.65); color:#fff; border:1px solid rgba(255,255,255,0.3);
+    border-radius:6px; padding:5px 10px; font-size:11px; font-family:'IBM Plex Mono', monospace;
+    cursor:pointer; display:none;
+  }
+  .carousel-link-btn:hover{border-color:var(--teal); color:var(--teal);}
+  body.edit-mode .carousel-link-btn{display:block;}
+  /* شارة صغيرة تظهر للزوار على الصورة لما يكون فيها رابط خارجي، حتى لو وضع التعديل مطفي */
+  .carousel-link-badge{
+    position:absolute; bottom:10px; right:10px; z-index:5;
+    background:rgba(0,0,0,0.6); color:#fff; border:1px solid rgba(255,255,255,0.3);
+    border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; pointer-events:none;
+  }
+  .proj-carousel.has-link .carousel-track{cursor:pointer;}
+  .export-btn{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%); z-index:300;
+    background:var(--amber); color:#1a1206; border:none; padding:14px 30px; border-radius:30px;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; cursor:pointer;
+    display:none; box-shadow:0 12px 34px rgba(0,0,0,0.45); direction:ltr;
+  }
+  .export-btn:hover{background:#f0b358;}
+  body.edit-mode .export-btn{display:block;}
+  .edit-hint{
+    position:fixed; bottom:78px; left:50%; transform:translateX(-50%); z-index:300;
+    background:var(--surface); border:1px solid var(--border); color:var(--muted);
+    font-size:12px; padding:8px 16px; border-radius:20px; display:none; white-space:nowrap;
+  }
+  body.edit-mode .edit-hint{display:block;}
+
+  /* ==========================================================================
+     ستايل: قسم الهيرو (العنوان الرئيسي)
+     ========================================================================== */
+  .hero{
+    min-height:100vh; display:flex; align-items:center;
+    padding-top:100px; padding-bottom:60px;
+  }
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center; width:100%;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right;
+    color:var(--teal); font-size:13px; letter-spacing:1px; margin-bottom:20px;
+    display:flex; align-items:center; gap:8px; justify-content:flex-end;
+  }
+  .eyebrow::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--teal); box-shadow:0 0 12px var(--teal);}
+  html[dir="ltr"] .eyebrow{text-align:left; justify-content:flex-start;}
+  h1{
+    font-size:clamp(34px, 5vw, 58px); font-weight:700; line-height:1.25;
+    margin-bottom:24px;
+  }
+  h1 .accent{color:var(--amber);}
+  .hero p.sub{color:var(--muted); font-size:18px; max-width:520px; margin-bottom:36px;}
+  .btn-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    padding:14px 28px; border-radius:6px; font-size:15px; font-weight:500;
+    transition:all .2s ease;
+  }
+  .btn-primary{background:var(--amber); color:#1a1206;}
+  .btn-primary:hover{background:#f0b358; transform:translateY(-2px);}
+  .btn-ghost{border:1px solid var(--border); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--muted);}
+
+  /* لوحة الشارت المتحرك في الهيرو */
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .panel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .panel-head .dots{display:flex; gap:6px;}
+  .panel-head .dots span{width:9px; height:9px; border-radius:50%; background:var(--border);}
+  .panel-head .label{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:12px; color:var(--muted);}
+  .chart-line{width:100%; height:140px;}
+  .chart-line path.line{
+    fill:none; stroke:var(--amber); stroke-width:2.5;
+    stroke-dasharray:600; stroke-dashoffset:600;
+    /* يرسم الخط للأمام ثم يمسحه للخلف بشكل متكرر — دورة كاملة كل 3 ثواني */
+    animation:draw 1.5s ease-in-out .3s infinite alternate;
+  }
+  .chart-line path.area{fill:url(#areaFill); opacity:0; animation:fadeArea 1.5s ease forwards 1.6s;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  @keyframes fadeArea{to{opacity:1;}}
+  .stat-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:18px;}
+  .stat-chip{
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px;
+  }
+  .stat-chip .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:17px; color:var(--teal); font-weight:500;}
+  .stat-chip .lbl{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  /* ظهور تدريجي عند السكرول + تتابع زمني بسيط (stagger) */
+  .reveal{
+    opacity:0; transform:translateY(28px);
+    transition:opacity .7s ease, transform .7s ease;
+    transition-delay:calc(var(--d, 0) * 90ms);
+  }
+  .reveal.visible{opacity:1; transform:translateY(0);}
+
+  /* عنوان أي قسم (تاق + عنوان) */
+  .sec-head{margin-bottom:52px;}
+  .sec-tag{font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right; color:var(--amber); font-size:12px; letter-spacing:1px; display:block; margin-bottom:10px;}
+  html[dir="ltr"] .sec-tag{text-align:left;}
+  .sec-head h2{font-size:clamp(26px,3.5vw,36px); font-weight:600;}
+
+  /* ==========================================================================
+     ستايل: قسم نبذة عني (About)
+     ========================================================================== */
+  .about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:60px; align-items:start;}
+  .about-grid p{color:var(--muted); font-size:16px; margin-bottom:16px;}
+  .metrics{display:flex; flex-direction:column; gap:0;}
+  .metric{display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--border);}
+  .metric:first-child{padding-top:0;}
+  .metric .num{font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:28px; color:var(--amber); font-weight:500;}
+  .metric .lbl{font-size:14px; color:var(--muted);}
+
+  /* ==========================================================================
+     ستايل: قسم الخدمات (Services)
+     ========================================================================== */
+  .services-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;}
+  .service-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:26px 22px; transition:border-color .2s ease, transform .2s ease;
+  }
+  .service-card:hover{border-color:var(--amber); transform:translateY(-3px);}
+  .service-card .icon{
+    width:40px; height:40px; border-radius:9px; background:var(--surface2);
+    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    font-size:18px; margin-bottom:16px; color:var(--amber);
+  }
+  .service-card h3{font-size:16px; font-weight:600; margin-bottom:8px;}
+  .service-card p{color:var(--muted); font-size:13.5px; line-height:1.7;}
+
+  /* ==========================================================================
+     ستايل: قسم المهارات والأدوات (Skills)
+     ========================================================================== */
+  .skill-cat{margin-bottom:32px;}
+  .skill-cat h3{font-size:14px; color:var(--muted); font-weight:500; margin-bottom:14px; font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right;}
+  html[dir="ltr"] .skill-cat h3{text-align:left;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    border:1px solid var(--border); background:var(--surface);
+    padding:8px 16px; border-radius:20px; font-size:13px; font-family:'IBM Plex Mono', monospace; direction:ltr;
+    color:var(--text);
+  }
+
+  /* ==========================================================================
+     ستايل: قسم المشاريع (Projects) + كاروسيل صور كل مشروع
+     ========================================================================== */
+  .proj-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .proj-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    overflow:hidden; transition:border-color .2s ease, transform .15s ease;
+    transform-style:preserve-3d;
+  }
+  .proj-card:hover{border-color:var(--teal);}
+
+  /* كاروسيل الصور: خلفية سوداء ثابتة + سهم يمين/يسار + نقاط أسفل */
+  .proj-carousel{
+    position:relative; height:190px; background:#000; overflow:hidden;
+    border-bottom:1px solid var(--border); direction:ltr;
+  }
+  .carousel-track{display:flex; height:100%; transition:transform .4s ease;}
+  .carousel-slide{min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000;}
+  .carousel-slide img{width:100%; height:100%; object-fit:cover; display:block;}
+  .carousel-slide.placeholder{
+    color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    text-align:center; padding:0 24px; direction:rtl; line-height:1.8;
+  }
+  .car-arrow{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:5;
+    width:32px; height:32px; border-radius:50%; border:1px solid rgba(255,255,255,0.25);
+    background:rgba(0,0,0,0.45); color:#fff; font-size:16px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .car-arrow:hover{background:rgba(0,0,0,0.8); border-color:var(--amber);}
+  .car-arrow.prev{left:10px;}
+  .car-arrow.next{right:10px;}
+  .car-dots{position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:5;}
+  .car-dots span{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.35); cursor:pointer;}
+  .car-dots span.active{background:var(--amber);}
+
+  .proj-body{padding:22px;}
+  .proj-body h3{font-size:18px; font-weight:600; margin-bottom:10px;}
+  .proj-body .row{display:flex; gap:8px; margin-bottom:6px; font-size:13.5px;}
+  .proj-body .row .k{color:var(--teal); flex-shrink:0; font-weight:500;}
+  .proj-body .row .v{color:var(--muted);}
+  .proj-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;}
+  .proj-tags span{
+    font-family:'IBM Plex Mono', monospace; direction:ltr; font-size:11px;
+    color:var(--muted); border:1px solid var(--border); padding:3px 9px; border-radius:4px;
+  }
+
+  /* ==========================================================================
+     ستايل: قسم الخبرات (Timeline)
+     ========================================================================== */
+  .timeline{position:relative; padding-right:32px;}
+  .timeline::before{content:''; position:absolute; right:6px; top:6px; bottom:6px; width:1px; background:var(--border);}
+  html[dir="ltr"] .timeline{padding-right:0; padding-left:32px;}
+  html[dir="ltr"] .timeline::before{right:auto; left:6px;}
+  .t-item{position:relative; padding-bottom:44px;}
+  .t-item:last-child{padding-bottom:0;}
+  .t-item::before{
+    content:''; position:absolute; right:-32px; top:4px; width:12px; height:12px;
+    border-radius:50%; background:var(--bg); border:2px solid var(--amber);
+  }
+  html[dir="ltr"] .t-item::before{right:auto; left:-32px;}
+  .t-item .period{font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:right; font-size:12px; color:var(--muted); margin-bottom:6px;}
+  html[dir="ltr"] .t-item .period{text-align:left;}
+  .t-item h4{font-size:17px; font-weight:600; margin-bottom:6px;}
+  .t-item p{color:var(--muted); font-size:14.5px;}
+
+  /* ==========================================================================
+     ستايل: قسم التواصل (Contact) + الفوتر
+     ========================================================================== */
+  .contact{text-align:center;}
+  .contact h2{font-size:clamp(28px,4vw,44px); margin-bottom:20px;}
+  .contact p{color:var(--muted); font-size:17px; margin-bottom:36px;}
+  .contact-links{display:flex; gap:16px; justify-content:center; flex-wrap:wrap;}
+  .contact-links a{
+    border:1px solid var(--border); padding:12px 24px; border-radius:8px; font-size:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .contact-links a:hover{border-color:var(--amber); color:var(--amber);}
+  footer{text-align:center; padding:32px 6vw; color:var(--muted); font-size:12.5px; font-family:'IBM Plex Mono', monospace; direction:ltr; border-top:1px solid var(--border);}
+
+  @media(max-width:860px){
+    .hero-grid, .about-grid, .proj-grid{grid-template-columns:1fr;}
+    .services-grid{grid-template-columns:1fr 1fr;}
+    nav ul{display:none;}
+    section{padding:80px 6vw;}
+  }
+  @media(max-width:560px){
+    .services-grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body class="" data-new-gr-c-s-check-loaded="14.1310.0" data-gr-ext-installed="">
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="grid-bg" id="gridBg"></div>
+
+<!-- ============================================================ -->
+<!-- قسم: شريط التنقل العلوي (Navbar)                              -->
+<!-- ============================================================ -->
+<nav>
+  <div class="logo">Abdulrahman<span>.</span>K</div>
+  <div class="nav-right">
+    <ul>
+      <li><a href="#about" data-ar="نبذة" data-en="About">نبذة</a></li>
+      <li><a href="#services" data-ar="الخدمات" data-en="Services">الخدمات</a></li>
+      <li><a href="#skills" data-ar="المهارات" data-en="Skills">المهارات</a></li>
+      <li><a href="#projects" data-ar="الأعمال" data-en="Work">الأعمال</a></li>
+      <li><a href="#experience" data-ar="الخبرات" data-en="Experience">الخبرات</a></li>
+    </ul>
+    <button class="lang-toggle" id="langToggle" aria-label="Switch to English">EN</button>
+    <a href="#contact" class="cta" data-ar="تواصل معي" data-en="Get in touch">تواصل معي</a>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- قسم: الهيرو - العنوان الرئيسي وأول شي يشوفه الزائر             -->
+<!-- ============================================================ -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow" data-ar="عبدالرحمن الجاسر" data-en="Abdulrahman Aljasser">عبدالرحمن الجاسر</div>
+      <h1 data-ar="أحوّل البيانات&lt;br&gt;إلى &lt;span class=&quot;accent&quot;&gt;قرارات واضحة&lt;/span&gt;" data-en="Turning Data&lt;br&gt;Into &lt;span class=&quot;accent&quot;&gt;Clear Decisions&lt;/span&gt;">أحوّل البيانات<br>إلى <span class="accent">قرارات واضحة</span></h1>
+      <p class="sub" data-ar="محلل بيانات متخصص في بناء الداشبوردات وربط الأنظمة وتطوير حلول تسهّل العمليات، أحوّل البيانات إلى تقارير واضحة تساعد على اتخاذ القرار." data-en="Data Analyst specializing in dashboard development, system integration, and business solutions. I transform raw data into clear reports and build systems that streamline operations and support better decision-making.">محلل بيانات متخصص في بناء الداشبوردات وربط الأنظمة وتطوير حلول تسهّل العمليات، أحوّل البيانات إلى تقارير واضحة تساعد على اتخاذ القرار.</p><div class="btn-row">
+        <a href="#projects" class="btn btn-primary" data-ar="شاهد أعمالي" data-en="View my work">شاهد أعمالي</a>
+        <a href="#contact" class="btn btn-ghost" data-ar="تواصل معي" data-en="Get in touch">تواصل معي</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="label">Pbix.Xlsx.SQL.Python.HTML.API</div>
+      </div>
+      <svg class="chart-line" viewBox="0 0 400 140" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8A33D" stop-opacity="0.35"></stop>
+            <stop offset="100%" stop-color="#E8A33D" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <path class="area" d="M0,110 L40,95 L80,100 L120,70 L160,80 L200,50 L240,60 L280,35 L320,45 L360,20 L400,28 L400,140 L0,140 Z"></path>
+        <path class="line" d="M0,110 L40,95 L80,100 L120,70 L160,80 L200,50 L240,60 L280,35 L320,45 L360,20 L400,28"></path>
+      </svg>
+      <div class="stat-row">
+        <div class="stat-chip">
+          <div class="num count" data-target="38" data-decimals="0" data-prefix="+" data-suffix="%">+38%</div>
+          <div class="lbl" data-ar="تطوير انظمة" data-en="Dashboards">تطوير انظمة</div>
+        </div>
+        <div class="stat-chip">
+          <div class="num count" data-target="6" data-decimals="0" data-prefix="" data-suffix="">6</div>
+          <div class="lbl" data-ar="أنظمة مربوطة" data-en="Integration Systems">أنظمة مربوطة</div>
+        </div>
+        <div class="stat-chip">
+          <div class="num count" data-target="4" data-decimals="1" data-prefix="" data-suffix="s">4.0s</div>
+          <div class="lbl" data-ar="داشبوردات" data-en="Developments">داشبوردات</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: نبذة عني (About)                                         -->
+<!-- ============================================================ -->
+<section id="about">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// about</span>
+    <h2 data-ar="نبذة عني" data-en="About me">نبذة عني</h2>
+  </div>
+  <div class="about-grid">
+    <div class="reveal">
+      <p data-ar="محلل بيانات ومطور حلول أعمال، متخصص في بناء الداشبوردات، تحليل البيانات، وتطوير أنظمة داخلية تساعد على تنظيم العمليات وتحسين كفاءة العمل." data-en="I am a Data Analyst and Business Solutions Developer specializing in dashboards, data analysis, and internal systems that improve operational efficiency and simplify business processes.">محلل بيانات ومطور حلول أعمال، متخصص في بناء الداشبوردات، تحليل البيانات، وتطوير أنظمة داخلية تساعد على تنظيم العمليات وتحسين كفاءة العمل.</p><p data-ar="أركز على تقديم حلول مخصصة تناسب احتياجات كل عميل، سواء كانت لوحة معلومات تفاعلية، نظامًا داخليًا لإدارة العمليات، أو أتمتة للمهام المتكررة، مع الحرص على أن تكون الحلول سهلة الاستخدام وقابلة للتطوير." data-en="I build tailored solutions that meet each client's needs, from interactive dashboards and internal platforms to workflow automation, ensuring every solution is practical, scalable, and easy to use.">أركز على تقديم حلول مخصصة تناسب احتياجات كل عميل، سواء كانت لوحة معلومات تفاعلية، نظامًا داخليًا لإدارة العمليات، أو أتمتة للمهام المتكررة، مع الحرص على أن تكون الحلول سهلة الاستخدام وقابلة للتطوير.</p></div>
+    <div class="metrics reveal">
+      <div class="metric" style="--d:0"><span class="lbl" data-ar="مشروع مكتمل" data-en="Completed Projects">مشروع مكتمل</span><span class="num count" data-target="40" data-decimals="0" data-prefix="" data-suffix="+">40+</span></div>
+      <div class="metric" style="--d:1"><span class="lbl" data-ar="حلول وأنظمة" data-en="Systems integrated">حلول وأنظمة</span><span class="num count" data-target="15" data-decimals="0" data-prefix="" data-suffix="+">15+</span></div>
+      <div class="metric" style="--d:2"><span class="lbl" data-ar="سنوات خبرة" data-en="Years of experience in data">سنوات خبرة</span><span class="num count" data-target="5" data-decimals="0" data-prefix="" data-suffix="">5</span></div>
+      <div class="metric" style="--d:3"><span class="lbl" data-ar="عملاء راضين" data-en="Self satisfaction">عملاء راضين</span><span class="num count" data-target="98" data-decimals="0" data-prefix="" data-suffix="%">98%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: خدماتي (Services)                                        -->
+<!-- عشان تضيف/تحذف/تعدل خدمة: انسخ أو عدّل بلوك ".service-card"    -->
+<!-- كل كرت = أيقونة (حرف/رمز) + عنوان + سطر وصف قصير                -->
+<!-- ============================================================ -->
+<section id="services">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// services</span>
+    <h2 data-ar="خدماتي" data-en="Services">خدماتي</h2>
+  </div>
+  <div class="services-grid">
+
+    <div class="service-card reveal" style="--d:0">
+      <div class="icon">▤</div>
+      <h3 data-ar="داشبوردات وتقارير احترافية" data-en="Dashboards &amp; Reports">داشبوردات وتقارير احترافية</h3>
+      <p data-ar="أصمم لوحات معلومات تفاعلية باستخدام Power BI وExcel تعرض مؤشرات الأداء والبيانات بشكل واضح، لتسهيل متابعة الأعمال واتخاذ القرارات." data-en="Designing interactive Power BI and Excel dashboards that present KPIs and business data in a clear, decision-focused format.">أصمم لوحات معلومات تفاعلية باستخدام Power BI وExcel تعرض مؤشرات الأداء والبيانات بشكل واضح، لتسهيل متابعة الأعمال واتخاذ القرارات.</p></div>
+
+    <div class="service-card reveal" style="--d:1">
+      <div class="icon">🗂</div>
+      <h3 data-ar="تحليل وتنظيف البيانات" data-en="Data Analysis &amp; Preparation">تحليل وتنظيف البيانات</h3>
+      <p data-ar="أنظم البيانات، أنظفها، وأجهزها للتحليل من خلال SQL وPython وPower Query لضمان نتائج دقيقة وموثوقة." data-en="Cleaning, organizing, and preparing data using SQL, Python, and Power Query to ensure reliable and accurate analysis.">أنظم البيانات، أنظفها، وأجهزها للتحليل من خلال SQL وPython وPower Query لضمان نتائج دقيقة وموثوقة.</p></div>
+
+    <div class="service-card reveal" style="--d:2">
+      <div class="icon">⚙</div>
+      <h3 data-ar="ربط الأنظمة وأتمتة العمليات" data-en="System Integration">ربط الأنظمة وأتمتة العمليات</h3>
+      <p data-ar="أربط الأنظمة وقواعد البيانات عبر APIs وأطور حلول أتمتة تقلل العمل اليدوي وتوفر الوقت وتحد من الأخطاء." data-en="Connecting systems through APIs and developing automation solutions that reduce manual work, save time, and minimize errors.">أربط الأنظمة وقواعد البيانات عبر APIs وأطور حلول أتمتة تقلل العمل اليدوي وتوفر الوقت وتحد من الأخطاء.</p></div>
+
+    <div class="service-card reveal" style="--d:3">
+      <div class="icon">☕</div>
+      <h3 data-ar="تطوير أنظمة داخلية" data-en="Internal Systems Development">تطوير أنظمة داخلية</h3>
+      <p data-ar="أصمم وأطور أنظمة داخلية مخصصة لتنظيم العمليات، تبسيط الإجراءات، وتحسين كفاءة العمل بما يتناسب مع احتياجات الجهة." data-en="Designing and developing custom internal platforms that simplify workflows, improve operations, and support business needs.">أصمم وأطور أنظمة داخلية مخصصة لتنظيم العمليات، تبسيط الإجراءات، وتحسين كفاءة العمل بما يتناسب مع احتياجات الجهة.</p></div>
+
+    <div class="service-card reveal" style="--d:4">
+      <div class="icon">◧</div>
+      <h3 data-ar="تقارير وعروض تنفيذية" data-en="Executive Reports &amp; Presentations">تقارير وعروض تنفيذية</h3>
+      <p data-ar="أعد تقارير وعروض احترافية تعرض النتائج ومؤشرات الأداء بأسلوب واضح يناسب الإدارة والاجتماعات التنفيذية." data-en="Creating professional reports and presentations that communicate business insights clearly to management and stakeholders.">أعد تقارير وعروض احترافية تعرض النتائج ومؤشرات الأداء بأسلوب واضح يناسب الإدارة والاجتماعات التنفيذية.</p></div>
+
+    <div class="service-card reveal" style="--d:5">
+      <div class="icon">▦</div>
+      <h3 data-ar="حلول مخصصة للأعمال" data-en="Custom Business Solutions">حلول مخصصة للأعمال</h3>
+      <p data-ar="أطور حلولاً مخصصة تناسب احتياج كل جهة، سواء كانت لوحة معلومات، نظام تقارير، أو أتمتة لعمليات العمل." data-en="Building tailored business solutions including dashboards, reporting systems, and workflow automation based on client requirements.">أطور حلولاً مخصصة تناسب احتياج كل جهة، سواء كانت لوحة معلومات، نظام تقارير، أو أتمتة لعمليات العمل.</p></div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: المهارات والأدوات (Skills)                               -->
+<!-- ============================================================ -->
+<section id="skills">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// stack</span>
+    <h2 data-ar="المهارات والأدوات" data-en="Skills &amp; tools">المهارات والأدوات</h2>
+  </div>
+  <div class="skill-cat reveal" style="--d:0">
+    <h3>bi &amp; visualization</h3>
+    <div class="chip-row">
+      <span class="chip">Power BI</span><span class="chip">Excel</span><span class="chip">Dax</span><span class="chip">Power Query</span>
+    </div>
+  </div>
+  <div class="skill-cat reveal" style="--d:1">
+    <h3>data &amp; databases</h3>
+    <div class="chip-row">
+      <span class="chip">SQL</span><span class="chip">Incorta</span><span class="chip">Python</span><span class="chip">Pandas</span>
+    </div>
+  </div>
+  <div class="skill-cat reveal" style="--d:2">
+    <h3>integration</h3>
+    <div class="chip-row">
+      <span class="chip">REST APIs</span><span class="chip">Power Automate</span><span class="chip">Azure Data Factory</span><span class="chip">Google Sheets API</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: المشاريع (Projects)                                      -->
+<!-- كل مشروع = صور (كاروسيل بسهم يمين/يسار) + رابط خارجي اختياري   -->
+<!-- + عنوان + تفاصيل + البرامج المستخدمة                           -->
+<!--                                                                -->
+<!-- إضافة/تعديل الصور: فعّل وضع التعديل (EDIT_MODE=true بالسكربت)  -->
+<!-- واضغط زر "🖼 الصور" اللي يطلع فوق كل كاروسيل، وحط روابط صورك    -->
+<!-- مفصولة بعلامة | بدون داعي تروح للسكربت أبداً.                  -->
+<!--                                                                -->
+<!-- ربط الصورة برابط خارجي (اختياري): اضغط زر "🔗 الرابط" فوق نفس  -->
+<!-- الكاروسيل، وحط رابط المشروع (مثال: رابط بوت التيليجرام). أي    -->
+<!-- زائر يضغط على الصورة بعدها ينفتح له الرابط بتبويب جديد، وتظهر  -->
+<!-- له شارة 🔗 صغيرة فوق الصورة توضح إنها قابلة للضغط. اتركه فاضي   -->
+<!-- تمامًا للمشاريع اللي ما لها رابط خارجي (زي الداشبوردات الداخلية) -->
+<!-- وما راح تظهر أي شارة ولا يصير الضغط على الصورة يسوي شي.        -->
+<!--                                                                -->
+<!-- عشان تضيف مشروع جديد بالمستقبل (نسخ يدوي بالكود):               -->
+<!--  (1) انسخ بلوك مشروع كامل من تحت (من "مشروع رقم" لين إغلاق الديف) -->
+<!--  (2) غيّر data-project="p5" لأي اسم مفتاح جديد ما يتكرر           -->
+<!--  (3) غيّر العنوان + المشكلة/الحل/النتيجة + البرامج المستخدمة    -->
+<!--      ملاحظة: data-en اختياري — اكتب data-ar بس والنص الظاهر      -->
+<!--      بالعربي، وبيظهر نفسه بوضع الإنجليزي تلقائياً لين تترجمه    -->
+<!--      بنفسك لاحقاً (أو تعدلها مباشرة بوضع التعديل وأنت بوضع EN). -->
+<!--  (4) لا تنسى data-images="" و data-link="" على .proj-carousel   -->
+<!-- ============================================================ -->
+<section id="projects">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// work</span>
+    <h2 data-ar="أبرز الأعمال" data-en="Projects">أبرز الأعمال</h2>
+  </div>
+  <div class="proj-grid">
+
+    <!-- ----- مشروع رقم 1: بوت مساعد للطلاب ----- -->
+    <div class="proj-card reveal" style="--d: 0;">
+      <!-- صور المشروع (كاروسيل) — روابط الصور محفوظة بخاصية data-images بالأسفل -->
+      <div class="proj-carousel" data-project="p1" data-images="Images/Telegram Bot.png" data-link="">
+        <button class="carousel-edit-btn" data-project="p1">🖼 الصور</button>
+        <button class="carousel-link-btn" data-project="p1">🔗 الرابط</button>
+        <div class="carousel-link-badge" style="display:none">🔗</div>
+        <div class="carousel-track"><div class="carousel-slide"><img src="Images/Telegram%20Bot.png" alt=""></div></div>
+        <button class="car-arrow prev" aria-label="الصورة السابقة" style="display: none;">‹</button>
+        <button class="car-arrow next" aria-label="الصورة التالية" style="display: none;">›</button>
+        <div class="car-dots" style="display: none;"></div>
+      </div>
+      <div class="proj-body">
+        <!-- عنوان المشروع -->
+        <h3 data-ar="بوت مساعد للطلاب في التيليقرام" data-en="Student Assistant Telegram Bot">بوت مساعد للطلاب في التيليقرام</h3>
+        <!-- تفاصيل: المشكلة / الحل / النتيجة -->
+        <div class="row"><span class="k" data-ar="المشكلة" data-en="Problem">المشكلة</span><span class="v" data-ar="صعوبة وصول الطلاب إلى الخطط الدراسية والملفات الأكاديمية بسرعة." data-en="Students had difficulty accessing academic resources and study plans quickly.">صعوبة وصول الطلاب إلى الخطط الدراسية والملفات الأكاديمية بسرعة.</span></div>
+        <div class="row"><span class="k" data-ar="الحل" data-en="Solution">الحل</span><span class="v" data-ar="تطوير بوت تيليجرام يجيب على استفسارات الطلاب ويوفر الملفات المطلوبة." data-en="Developed a Telegram bot that provides academic information, study plans, and required documents instantly.">تطوير بوت تيليجرام يجيب على استفسارات الطلاب ويوفر الملفات المطلوبة.</span></div>
+        <div class="row"><span class="k" data-ar="النتيجة" data-en="Result">النتيجة</span><span class="v" data-ar="وصول أسرع للمعلومات وتقليل الوقت في البحث." data-en="Reduced search time and improved access to academic resources.">وصول أسرع للمعلومات وتقليل الوقت في البحث.</span></div>
+        <!-- البرامج المستخدمة (Tags) -->
+        <div class="proj-tags"><span>Excel</span><span>Python</span><span>API</span></div>
+      </div>
+    </div>
+
+    <!-- ----- مشروع رقم 2: ربط نظام CRM بمخزون المستودع ----- -->
+    <div class="proj-card reveal" style="--d: 1;">
+      <div class="proj-carousel" data-project="p2" data-images="" data-link="">
+        <button class="carousel-edit-btn" data-project="p2">🖼 الصور</button>
+        <button class="carousel-link-btn" data-project="p2">🔗 الرابط</button>
+        <div class="carousel-link-badge" style="display:none">🔗</div>
+        <div class="carousel-track"><div class="carousel-slide placeholder">📷<br>فعّل وضع التعديل (✎) واضغط "🖼 الصور" لإضافة صور هذا المشروع</div></div>
+        <button class="car-arrow prev" aria-label="الصورة السابقة" style="display: none;">‹</button>
+        <button class="car-arrow next" aria-label="الصورة التالية" style="display: none;">›</button>
+        <div class="car-dots" style="display: none;"></div>
+      </div>
+      <div class="proj-body">
+        <h3 data-ar="أداة الكانبان" data-en="Kanban Live">أداة الكانبان</h3>
+        <div class="row"><span class="k" data-ar="المشكلة" data-en="Problem">المشكلة</span><span class="v" data-ar="متابعة المهام كانت تتم يدويًا عبر ملفات Excel مما صعّب تحديثها بين الفريق." data-en="Task tracking relied on shared Excel files, making collaboration slow and inefficient.">متابعة المهام كانت تتم يدويًا عبر ملفات Excel مما صعّب تحديثها بين الفريق.</span></div>
+        <div class="row"><span class="k" data-ar="الحل" data-en="Solution">الحل</span><span class="v" data-ar="تطوير أداة Kanban Live لمتابعة المهام بشكل لحظي عبر المتصفح." data-en="Built a live Kanban system that enables teams to manage and track tasks in real time.">تطوير أداة Kanban Live لمتابعة المهام بشكل لحظي عبر المتصفح.</span></div>
+        <div class="row"><span class="k" data-ar="النتيجة" data-en="Result">النتيجة</span><span class="v" data-ar="سهولة متابعة حالة المهام وتحسين التعاون بين أعضاء الفريق." data-en="Improved task visibility and streamlined collaboration across the team.">سهولة متابعة حالة المهام وتحسين التعاون بين أعضاء الفريق.</span></div>
+        <div class="proj-tags"><span>Local Server</span><span>HTML</span><span>API</span></div>
+      </div>
+    </div>
+
+    <!-- ----- مشروع رقم 3: تقرير مالي شهري تفاعلي ----- -->
+    <div class="proj-card reveal" style="--d: 2;">
+      <div class="proj-carousel has-link" data-project="p3" data-images="Images/Work-Instructions-Platforms.png" data-link="https://abdulrahman-aljasser.github.io/Work-Instructions-Platforms/">
+        <button class="carousel-edit-btn" data-project="p3">🖼 الصور</button>
+        <button class="carousel-link-btn" data-project="p3">🔗 الرابط</button>
+        <div class="carousel-link-badge" style="display: flex;">🔗</div>
+        <div class="carousel-track"><div class="carousel-slide"><img src="Images/Work-Instructions-Platforms.png" alt=""></div></div>
+        <button class="car-arrow prev" aria-label="الصورة السابقة" style="display: none;">‹</button>
+        <button class="car-arrow next" aria-label="الصورة التالية" style="display: none;">›</button>
+        <div class="car-dots" style="display: none;"></div>
+      </div>
+      <div class="proj-body">
+        <h3 data-ar="منصة تعليمات العمل" data-en="Work Instructions Platform">منصة تعليمات العمل</h3>
+        <div class="row"><span class="k" data-ar="المشكلة" data-en="Problem">المشكلة</span><span class="v" data-ar="تعليمات العمل قد تكون خلال ملفات PDF" data-en="Work instructions were distributed across multiple PDF files, making them difficult to access and maintain.">تعليمات العمل قد تكون خلال ملفات PDF</span></div>
+        <div class="row"><span class="k" data-ar="الحل" data-en="Solution">الحل</span><span class="v" data-ar="بناء منصة متكاملة لمشاركة جميع تعليمات العمل" data-en="Developed a centralized platform that organizes all work instructions with role-based content management.">بناء منصة متكاملة لمشاركة جميع تعليمات العمل</span></div>
+        <div class="row"><span class="k" data-ar="النتيجة" data-en="Result">النتيجة</span><span class="v" data-ar="الاعتماد عليها في حال الحاجه اليها" data-en="Faster access to information and simplified document management.">الاعتماد عليها في حال الحاجه اليها</span></div>
+        <div class="proj-tags"><span>HTML</span><span>SQL</span></div>
+      </div>
+    </div>
+
+    <!-- ----- مشروع رقم 4: أتمتة تقارير الموارد البشرية ----- -->
+    <div class="proj-card reveal" style="--d: 3;">
+      <div class="proj-carousel" data-project="p4" data-images="" data-link="">
+        <button class="carousel-edit-btn" data-project="p4">🖼 الصور</button>
+        <button class="carousel-link-btn" data-project="p4">🔗 الرابط</button>
+        <div class="carousel-link-badge" style="display:none">🔗</div>
+        <div class="carousel-track"><div class="carousel-slide placeholder">📷<br>فعّل وضع التعديل (✎) واضغط "🖼 الصور" لإضافة صور هذا المشروع</div></div>
+        <button class="car-arrow prev" aria-label="الصورة السابقة" style="display: none;">‹</button>
+        <button class="car-arrow next" aria-label="الصورة التالية" style="display: none;">›</button>
+        <div class="car-dots" style="display: none;"></div>
+      </div>
+      <div class="proj-body">
+        <h3 data-ar="داشبورد إنتاجية الموظفين" data-en="Employee Productivity Dashboard">داشبورد إنتاجية الموظفين</h3>
+        <div class="row"><span class="k" data-ar="المشكلة" data-en="Problem">المشكلة</span><span class="v" data-ar="صعوبة متابعة أداء وإنتاجية الموظفين من خلال البيانات الخام." data-en="Monitoring employee productivity through raw data was time-consuming and inefficient.">صعوبة متابعة أداء وإنتاجية الموظفين من خلال البيانات الخام.</span></div>
+        <div class="row"><span class="k" data-ar="الحل" data-en="Solution">الحل</span><span class="v" data-ar="تصميم لوحة معلومات تفاعلية باستخدام Power BI لعرض مؤشرات الأداء والإنتاجية بشكل لحظي." data-en="Designed an interactive Power BI dashboard to visualize productivity KPIs and operational performance.">تصميم لوحة معلومات تفاعلية باستخدام Power BI لعرض مؤشرات الأداء والإنتاجية بشكل لحظي.</span></div>
+        <div class="row"><span class="k" data-ar="النتيجة" data-en="Result">النتيجة</span><span class="v" data-ar="تسهيل متابعة الأداء ودعم اتخاذ القرارات من خلال مؤشرات ورسوم تفاعلية." data-en="Enabled faster performance monitoring and data-driven decision-making.">تسهيل متابعة الأداء ودعم اتخاذ القرارات من خلال مؤشرات ورسوم تفاعلية.</span></div>
+        <div class="proj-tags"><span>Power Bi</span><span>Dax</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: الخبرات (Timeline)                                       -->
+<!-- ============================================================ -->
+<section id="experience">
+  <div class="sec-head reveal">
+    <span class="sec-tag">// timeline</span>
+    <h2 data-ar="مسيرتي المهنية" data-en="Career journey">مسيرتي المهنية</h2>
+  </div>
+  <div class="timeline">
+    <div class="t-item reveal" style="--d:0">
+      <div class="period" data-ar="2025 — الآن" data-en="2025 — Present">2025 — الآن</div>
+      <h4 data-ar="محلل ضمان الجودة والتحسين المستمر - السجل العقاري" data-en="Quality Assurance Analyst (Continuous Improvement) – Real Estate Registry RER">محلل ضمان الجودة والتحسين المستمر - السجل العقاري</h4>
+      <p data-ar="تطوير منصات داخلية، داشبوردات، وأدوات أتمتة ساعدت على تحسين العمليات وتقليل العمل اليدوي." data-en="Developing internal platforms, interactive dashboards, and automation solutions to improve business processes, reduce manual work, and support operational excellence.">تطوير منصات داخلية، داشبوردات، وأدوات أتمتة ساعدت على تحسين العمليات وتقليل العمل اليدوي.</p></div>
+    <div class="t-item reveal" style="--d:1">
+      <div class="period">2024 - 2025</div>
+      <h4 data-ar="متدرب في Business Application Dep - سابك" data-en="Business Applications Intern – SABIC">متدرب في Business Application Dep - سابك</h4>
+      <p data-ar="عملت على تحليل البيانات، تكامل الأنظمة، واختبار التطبيقات، وطورت حلولًا داخلية باستخدام SQL Server وJavaScript لدعم التحول الرقمي وتحسين كفاءة خدمات IT." data-en="Worked on data analysis, system integration, application testing, and internal solutions using SQL Server and JavaScript to support digital transformation initiatives.">عملت على تحليل البيانات، تكامل الأنظمة، واختبار التطبيقات، وطورت حلولًا داخلية باستخدام SQL Server وJavaScript لدعم التحول الرقمي وتحسين كفاءة خدمات IT.</p></div>
+    <div class="t-item reveal" style="--d:2">
+      <div class="period">2020 — 2024</div>
+      <h4 data-ar="تطوير انظمة ومحلل بيانات مستقل - طالب جامعي" data-en="University Student / MIS Major | Independent Junior Data Analyst &amp; Solutions Developer">تطوير انظمة ومحلل بيانات مستقل - طالب جامعي</h4>
+      <p data-ar="قدمت حلولًا مستقلة في تحليل البيانات، بالإضافة إلى تطوير بوت تيليجرام ومشاريع تقنية خلال المرحلة الجامعية." data-en="While studying Management Information Systems, I worked on independent data analysis and system development projects, including Telegram bots.">قدمت حلولًا مستقلة في تحليل البيانات، بالإضافة إلى تطوير بوت تيليجرام ومشاريع تقنية خلال المرحلة الجامعية.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: التواصل (Contact)                                        -->
+<!-- ============================================================ -->
+<section id="contact" class="contact">
+  <div class="reveal">
+    <span class="sec-tag" style="text-align:center; display:block;">// contact</span>
+    <h2 data-ar="نتعاون على مشروعك الجاي؟" data-en="Let's work on your next project">نتعاون على مشروعك الجاي؟</h2>
+    <p data-ar="متاح حالياً لمشاريع Freelance ومهام تحليل بيانات وبناء داشبوردات." data-en="Currently available for freelance projects, data analysis, and dashboard building.">متاح حالياً لمشاريع Freelance ومهام تحليل بيانات وبناء داشبوردات.</p><div class="contact-links">
+      <a href="mailto:email@example.com" class="mono">email@example.com</a>
+      <a href="#" class="mono">LinkedIn</a>
+      <a href="#" class="mono">Freelancer</a>
+      <a href="#" class="mono">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- قسم: الفوتر                                                   -->
+<!-- ============================================================ -->
+<footer>designed &amp; built by Abdulrahman.K — 2026</footer>
+
+<!-- عناصر عائمة تظهر بس وقت تفعيل وضع التعديل -->
+<div class="edit-hint">✎ وضع التعديل مفعّل — دوس على أي نص وعدّله مباشرة</div>
+<button class="export-btn" id="exportBtn">💾 تحميل نسخة معدّلة (index.html)</button>
+
+<script>
+
+  /* ============================================================
+     ⚙️ المفتاح الوحيد اللي تحتاج تلمسه عشان تعدل على الموقع ⚙️
+     ------------------------------------------------------------
+     غيّر القيمة تحت إلى true عشان تفتح وضع التعديل، احفظ الملف،
+     وافتحه بالمتصفح (دبل كليك على index.html أو رفعه مؤقتًا).
+     بيطلع لك تلقائيًا: خط متقطع حول كل نص قابل للتعديل + زر
+     "🖼 الصور" فوق كل كاروسيل + زر "💾 تحميل نسخة معدّلة" بالأسفل.
+
+     طريقة التعديل:
+     - عدّل أي نص وأنت بوضع العربي → ينعكس تلقائيًا بالإنجليزي
+       أيضًا (نفس النص بالضبط) إلى أن تخصّص ترجمة إنجليزية بنفسك
+     - بدّل للغة الإنجليزية (زر EN) وعدّل نفس النص وأنت شايفه
+       بالإنجليزي → من هذي اللحظة يصير له ترجمة خاصة به، وما
+       يتأثر بعدها بالتعديلات العربية المستقبلية
+     - لصور المشاريع: زر "🖼 الصور" فوق كل كاروسيل
+
+     لما تخلص من التعديل: اضغط "💾 تحميل نسخة معدّلة" — بينزل لك
+     ملف index.html جديد ومصفّى تلقائيًا (بدون أي أثر لوضع
+     التعديل) جاهز ترفعه بدل الملف القديم على GitHub. الزر نفسه
+     يتكفل يرجّع EDIT_MODE=false بالملف المصدَّر حتى لو نسيت.
+     ============================================================ */
+  const EDIT_MODE = false; // ← غيّرها true للتعديل، وحمّل نسخة جديدة بزر "💾" لما تخلص
+
+
+  /* ============================================================
+     سكربت: إعدادات عامة
+     ============================================================ */
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+
+  /* ============================================================
+     سكربت: الظهور التدريجي عند السكرول (Scroll Reveal)
+     ============================================================ */
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      // ما نسوي unobserve هنا عشان الحركة تتكرر كل مرة العنصر يدخل الشاشة
+      e.target.classList.toggle('visible', e.isIntersecting);
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+
+
+  /* ============================================================
+     سكربت: شريط تقدم السكرول أعلى الصفحة
+     ============================================================ */
+  const progressBar = document.getElementById('progressBar');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrollable = h.scrollHeight - h.clientHeight;
+    const pct = scrollable > 0 ? (h.scrollTop / scrollable) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive:true });
+  updateProgress();
+
+
+  /* ============================================================
+     سكربت: باراللاكس خفيف على خلفية الشبكة
+     ============================================================ */
+  if(!prefersReducedMotion){
+    const gridBg = document.getElementById('gridBg');
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if(!ticking){
+        requestAnimationFrame(() => {
+          gridBg.style.transform = `translateY(${window.scrollY * 0.15}px)`;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive:true });
+  }
+
+
+  /* ============================================================
+     سكربت: حركة العد التصاعدي للأرقام (Count-up)
+     ============================================================ */
+  function animateCount(el){
+    const target = parseFloat(el.dataset.target);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const duration = 1400;
+    const startTime = performance.now();
+    function tick(now){
+      const p = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = target * eased;
+      el.textContent = prefix + val.toFixed(decimals) + suffix;
+      if(p < 1){ requestAnimationFrame(tick); }
+      else{ el.textContent = prefix + target.toFixed(decimals) + suffix; }
+    }
+    requestAnimationFrame(tick);
+  }
+  const countEls = document.querySelectorAll('.count');
+  if(!prefersReducedMotion){
+    const countIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          animateCount(e.target);
+          countIo.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    countEls.forEach(el => countIo.observe(el));
+  }
+
+
+  /* ============================================================
+     سكربت: تأثير الميلان (Tilt) على كروت المشاريع عند تحريك الماوس
+     ============================================================ */
+  if(!prefersReducedMotion && window.matchMedia('(hover: hover)').matches){
+    document.querySelectorAll('.proj-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const cx = rect.width / 2, cy = rect.height / 2;
+        const rotateY = ((x - cx) / cx) * 6;
+        const rotateX = -((y - cy) / cy) * 6;
+        card.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+  }
+
+
+  /* ============================================================
+     سكربت: كاروسيل صور المشاريع (سهم يمين / يسار + نقاط)
+     ------------------------------------------------------------
+     كل مشروع يقرأ صوره من خاصية data-images الموجودة على نفس
+     عنصر .proj-carousel بالـ HTML (روابط مفصولة بعلامة |).
+     تقدر تعدلها يدويًا بالـ HTML، أو بشكل أسهل: فعّل وضع
+     التعديل واضغط زر "🖼 الصور" فوق أي كاروسيل.
+     ============================================================ */
+  function initCarousel(wrapOrKey){
+    const wrap = typeof wrapOrKey === 'string'
+      ? document.querySelector(`.proj-carousel[data-project="${wrapOrKey}"]`)
+      : wrapOrKey;
+    if(!wrap) return;
+
+    const track      = wrap.querySelector('.carousel-track');
+    const dotsWrap   = wrap.querySelector('.car-dots');
+    const prevBtn    = wrap.querySelector('.car-arrow.prev');
+    const nextBtn    = wrap.querySelector('.car-arrow.next');
+    const linkBadge  = wrap.querySelector('.carousel-link-badge');
+    const images     = (wrap.dataset.images || '').split('|').map(s => s.trim()).filter(Boolean);
+    let index = 0;
+
+    // الرابط الخارجي (لو موجود): يخلي الصورة قابلة للضغط وتفتح الرابط بتبويب جديد
+    const link = (wrap.dataset.link || '').trim();
+    if(link){
+      wrap.classList.add('has-link');
+      linkBadge.style.display = 'flex';
+      track.onclick = () => window.open(link, '_blank', 'noopener');
+    } else {
+      wrap.classList.remove('has-link');
+      linkBadge.style.display = 'none';
+      track.onclick = null;
+    }
+
+    track.innerHTML = '';
+    dotsWrap.innerHTML = '';
+
+    // حالة: ما فيه صور بعد — نعرض رسالة مكان الصورة
+    if(images.length === 0){
+      track.innerHTML = `<div class="carousel-slide placeholder">📷<br>فعّل وضع التعديل (✎) واضغط "🖼 الصور" لإضافة صور هذا المشروع</div>`;
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+      dotsWrap.style.display = 'none';
+      return;
+    }
+    prevBtn.style.display = '';
+    nextBtn.style.display = '';
+    dotsWrap.style.display = '';
+
+    // بناء السلايدات من روابط الصور
+    images.forEach((src) => {
+      const slide = document.createElement('div');
+      slide.className = 'carousel-slide';
+      // encodeURI يحمي الرابط تلقائيًا لو فيه مسافات أو رموز خاصة بمسار الصورة
+      slide.innerHTML = `<img src="${encodeURI(src)}" alt="">`;
+      track.appendChild(slide);
+    });
+
+    // إذا صورة وحدة بس، ما نحتاج أسهم أو نقاط
+    if(images.length === 1){
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+      dotsWrap.style.display = 'none';
+    } else {
+      images.forEach((_, i) => {
+        const dot = document.createElement('span');
+        if(i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goTo(i));
+        dotsWrap.appendChild(dot);
+      });
+    }
+
+    function update(){
+      track.style.transform = `translateX(${-index * 100}%)`;
+      dotsWrap.querySelectorAll('span').forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+    function goTo(i){ index = (i + images.length) % images.length; update(); }
+
+    // onclick بدل addEventListener عشان ما تتكرر المستمعات لو الكاروسيل انبنى أكثر من مرة
+    prevBtn.onclick = () => goTo(index - 1);
+    nextBtn.onclick = () => goTo(index + 1);
+  }
+  document.querySelectorAll('.proj-carousel').forEach(initCarousel);
+
+
+  /* ============================================================
+     سكربت: زر تبديل اللغة (عربي ⇄ إنجليزي)
+     ------------------------------------------------------------
+     data-en اختياري على كل عنصر: إذا ما وجدت ترجمة إنجليزية،
+     يتم عرض نفس النص العربي تلقائيًا. يعني لو عدلت صياغة عربية
+     فقط بدون ما تلمس data-en، التعديل ينعكس بنفس النص بالوضعين
+     (عربي وإنجليزي) لحد ما تضيف ترجمة يدوية خاصة بالإنجليزي.
+     ============================================================ */
+  const langToggle = document.getElementById('langToggle');
+  const titles = { ar: 'Abdulrahman.K — محلل بيانات', en: 'Abdulrahman.K — Data Analyst' };
+  let currentLang = 'ar';
+  function applyLang(lang){
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.querySelectorAll('[data-ar]').forEach(el => {
+      // data-en اختياري: لو ما كتبته، بيعرض نفس النص العربي حتى بوضع الإنجليزي
+      // لين تضيف له ترجمة بنفسك — ما يصير خطأ ولا يطلب منك تعبيه إجباري
+      el.innerHTML = lang === 'ar' ? el.dataset.ar : (el.dataset.en || el.dataset.ar);
+    });
+    document.title = titles[lang];
+    langToggle.textContent = lang === 'ar' ? 'EN' : 'ع';
+    langToggle.setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التبديل للعربية');
+  }
+  langToggle.addEventListener('click', () => {
+    currentLang = currentLang === 'ar' ? 'en' : 'ar';
+    applyLang(currentLang);
+  });
+  // نفرض العربي كلغة افتراضية عند فتح الصفحة، بدل الاعتماد على آخر نص كان محفوظ بالملف
+  applyLang(currentLang);
+
+
+  /* ============================================================
+     سكربت: وضع التعديل المباشر (Edit Mode)
+     ------------------------------------------------------------
+     منطق المزامنة بين اللغتين:
+     - وأنت بوضع العربي: أي تعديل يُحفظ بالعربي، وينعكس تلقائيًا
+       بنفس النص للإنجليزي أيضًا (data-en-custom ما زالت غير مفعّلة)
+     - أول ما تعدّل نص وأنت بوضع الإنجليزي، يصير له ترجمة خاصة
+       (يتعلّم عليها data-en-custom="true")، ومن هذي اللحظة
+       التعديلات العربية القادمة على نفس العنصر ما تكتبها فوقها
+     ============================================================ */
+  const exportBtn = document.getElementById('exportBtn');
+  let editMode = EDIT_MODE;
+
+  function setEditable(state){
+    document.querySelectorAll(
+      '[data-ar], .chip, .proj-tags span, .t-item .period:not([data-ar]), .panel-head .label'
+    ).forEach(el => {
+      if(state){ el.contentEditable = 'true'; }
+      else{ el.removeAttribute('contenteditable'); } // نحذف الخاصية كلها بدل ما نخليها false عشان الكود يطلع نظيف
+    });
+  }
+
+  if(editMode){
+    document.body.classList.add('edit-mode');
+    setEditable(true);
+  }
+
+  // أي تعديل نصي: يُحفظ فورًا، ويُمزامَن للإنجليزي تلقائيًا إلا إذا كان للإنجليزي ترجمة مخصّصة سابقة
+  document.addEventListener('input', (e) => {
+    if(!editMode) return;
+    const el = e.target.closest('[data-ar]');
+    if(!el) return;
+
+    if(currentLang === 'ar'){
+      el.dataset.ar = el.innerHTML;
+      if(el.dataset.enCustom !== 'true'){
+        el.dataset.en = el.innerHTML; // مرآة تلقائية للإنجليزي إلى أن يُخصَّص يدويًا
+      }
+    } else {
+      el.dataset.en = el.innerHTML;
+      el.dataset.enCustom = 'true'; // من الآن، هذا العنصر له ترجمة خاصة، ما يتأثر بتعديلات العربي القادمة
+    }
+  });
+
+  // أزرار "🖼 الصور" فوق كل كاروسيل (تظهر فقط إذا EDIT_MODE مفعّل)
+  document.querySelectorAll('.carousel-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.project;
+      const wrap = document.querySelector(`.proj-carousel[data-project="${key}"]`);
+      const current = wrap.dataset.images || '';
+      const input = prompt(
+        'حط روابط صور هذا المشروع، وافصل بين كل رابط وبعده بعلامة |\nمثال:\nimages/1.jpg|images/2.jpg',
+        current
+      );
+      if(input !== null){
+        wrap.dataset.images = input.trim();
+        initCarousel(wrap);
+      }
+    });
+  });
+
+  // أزرار "🔗 الرابط" فوق كل كاروسيل: تحدد رابط خارجي يفتح لما الزائر يضغط على الصورة
+  // اتركه فاضي لو المشروع ما له رابط خارجي (زي الداشبوردات الداخلية) — عادي جدًا
+  document.querySelectorAll('.carousel-link-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.project;
+      const wrap = document.querySelector(`.proj-carousel[data-project="${key}"]`);
+      const current = wrap.dataset.link || '';
+      const input = prompt(
+        'حط رابط هذا المشروع (مثال: رابط بوت التيليجرام، أو رابط الموقع)\nسيبه فاضي لو ما فيه رابط خارجي لهذا المشروع:',
+        current
+      );
+      if(input !== null){
+        wrap.dataset.link = input.trim();
+        initCarousel(wrap);
+      }
+    });
+  });
+
+  // زر تحميل نسخة معدّلة: يصدّر الصفحة الحالية بكل تعديلاتك كملف index.html نظيف وجاهز للرفع
+  exportBtn.addEventListener('click', () => {
+    // 1) نثبّت القيمة النهائية للأرقام المتحركة عشان تظهر صح حتى قبل ما تشتغل الحركة عند أي زائر
+    document.querySelectorAll('.count').forEach(el => {
+      const target = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      el.textContent = prefix + target.toFixed(decimals) + suffix;
+    });
+
+    // 2) نطفي وضع التعديل مؤقتًا عشان نحذف كل خط متقطع وخاصية contenteditable من الكود المصدَّر
+    const wasEditing = editMode;
+    if(wasEditing){
+      editMode = false;
+      document.body.classList.remove('edit-mode');
+      setEditable(false);
+    }
+
+    // 3) نرجّع حالة السكرول واللغة لوضعها الافتراضي (عربي، من أول الصفحة) عشان أي زائر جديد يفتحها صح
+    document.getElementById('progressBar').removeAttribute('style');
+    const gridBgEl = document.getElementById('gridBg');
+    if(gridBgEl) gridBgEl.removeAttribute('style');
+    const wasLang = currentLang;
+    if(wasLang !== 'ar'){ applyLang('ar'); }
+
+    // 4) نمسح كلاس "visible" المؤقت عن عناصر الظهور التدريجي عشان حركة الدخول تشتغل من جديد لأي زائر
+    document.querySelectorAll('.reveal.visible').forEach(el => el.classList.remove('visible'));
+
+    // 5) نجهّز نص الصفحة النهائي، ونجبر lang/dir = ar/rtl ونجبر EDIT_MODE = false داخله دايمًا
+    let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML
+      .replace('const EDIT_MODE = true;', 'const EDIT_MODE = false;');
+    html = html.replace('<html lang="ar" dir="rtl">', '<html lang="ar" dir="rtl">');
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // 6) نرجّع كل شي كما كان عشان تكمل تعديلك بدون انقطاع
+    if(wasLang !== 'ar'){ applyLang(wasLang); }
+    if(wasEditing){
+      editMode = true;
+      document.body.classList.add('edit-mode');
+      setEditable(true);
+    }
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el)); // نعيد مراقبة السكرول بعد ما رجّعنا الحالة
+  });
+
+</script>
+
+
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true" style="visibility: visible !important;"></grammarly-desktop-integration></html>
